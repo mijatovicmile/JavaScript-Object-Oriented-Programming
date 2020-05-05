@@ -27,9 +27,14 @@ class ElementAttribute {
  * Will be a class to output different parts of web page (components)
  */
 class Component {
-  constructor(renderHookId) {
+  constructor(renderHookId, shouldRender = true) {
     this.hookId = renderHookId;
+    if (shouldRender) {
+      this.render();
+    }
   }
+
+  render() {}
 
   /**
    * @param {string} tag The tag of the element I want to create
@@ -106,8 +111,9 @@ class ProductItem extends Component {
    * accept the overall product object property structure
    */
   constructor(product, renderHookId) {
-    super(renderHookId);
+    super(renderHookId, false);
     this.product = product;
+    this.render();
   }
 
   // Logic for adding a single product to a Cart
@@ -140,24 +146,37 @@ class ProductItem extends Component {
 
 // List of all products
 class ProductList extends Component {
-  // Products array
-  products = [
-    new Product(
-      'A Product 1',
-      'https://dummyimage.com/800x320/a89fa8/540075&text=A+Product+Image+1',
-      34.95,
-      'Description of Product 1'
-    ),
-    new Product(
-      'A Product 2',
-      'https://dummyimage.com/800x320/a89fa8/540075&text=A+Product+Image+2',
-      83.75,
-      'Description of Product 2'
-    )
-  ];
+  // Products array initially will be empty
+  products = [];
 
   constructor(renderHookId) {
     super(renderHookId);
+    this.fetchProducts();
+  }
+
+  // Simulate fetching products from database
+  fetchProducts() {
+    this.products = [
+      new Product(
+        'A Product 1',
+        'https://dummyimage.com/800x320/a89fa8/540075&text=A+Product+Image+1',
+        34.95,
+        'Description of Product 1'
+      ),
+      new Product(
+        'A Product 2',
+        'https://dummyimage.com/800x320/a89fa8/540075&text=A+Product+Image+2',
+        83.75,
+        'Description of Product 2'
+      )
+    ];
+    this.renderProducts();
+  }
+
+  renderProducts() {
+    for (const product of this.products) {
+      new ProductItem(product, 'prod-list');
+    }
   }
 
   // Logic for rendering list of products on the page
@@ -166,23 +185,24 @@ class ProductList extends Component {
       new ElementAttribute('id', 'prod-list')
     ]);
 
-    for (const product of this.products) {
-      const productItem = new ProductItem(product, 'prod-list');
-      productItem.render();
+    if (this.products && this.products.length > 0) {
+      this.renderProducts();
     }
   }
 }
 
 // Combine ShoppingCart and ProductList
 class Shop {
+  constructor() {
+    this.render();
+  }
+
   render() {
     // ShoppingCart instantiation as a property of Shop class
     this.cart = new ShoppingCart('app');
-    this.cart.render();
 
     // ProductList instantiation
-    const productList = new ProductList('app');
-    productList.render();
+    new ProductList('app');
   }
 }
 
@@ -191,7 +211,6 @@ class App {
 
   static init() {
     const shop = new Shop();
-    shop.render();
     this.cart = shop.cart;
   }
 
